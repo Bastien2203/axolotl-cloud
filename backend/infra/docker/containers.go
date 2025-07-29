@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"github.com/docker/docker/api/types/container"
 	dImage "github.com/docker/docker/api/types/image"
@@ -13,7 +14,9 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
-func (dc *DockerClient) ContainerExists(ctx context.Context, name string) (bool, error) {
+func (dc *DockerClient) ContainerExists(name string) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
 	cli := dc.cli
 	containers, err := cli.ContainerList(ctx, container.ListOptions{All: true})
 	if err != nil {
@@ -27,7 +30,9 @@ func (dc *DockerClient) ContainerExists(ctx context.Context, name string) (bool,
 	return false, nil
 }
 
-func (dc *DockerClient) StartContainer(ctx context.Context, name string) (string, error) {
+func (dc *DockerClient) StartContainer(name string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
 	cli := dc.cli
 
 	err := cli.ContainerStart(ctx, name, container.StartOptions{})
@@ -38,7 +43,9 @@ func (dc *DockerClient) StartContainer(ctx context.Context, name string) (string
 	return name, nil
 }
 
-func (dc *DockerClient) StopContainer(ctx context.Context, name string) error {
+func (dc *DockerClient) StopContainer(name string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
 	cli := dc.cli
 
 	err := cli.ContainerStop(ctx, name, container.StopOptions{})
@@ -49,7 +56,9 @@ func (dc *DockerClient) StopContainer(ctx context.Context, name string) error {
 	return nil
 }
 
-func (dc *DockerClient) RemoveContainer(ctx context.Context, name string) error {
+func (dc *DockerClient) RemoveContainer(name string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
 	cli := dc.cli
 
 	err := cli.ContainerRemove(ctx, name, container.RemoveOptions{Force: true})
@@ -60,7 +69,9 @@ func (dc *DockerClient) RemoveContainer(ctx context.Context, name string) error 
 	return nil
 }
 
-func (dc *DockerClient) CreateContainer(ctx context.Context, name string, image string, ports map[string]string, env map[string]string, volumes map[string]string) (string, error) {
+func (dc *DockerClient) CreateContainer(name string, image string, ports map[string]string, env map[string]string, volumes map[string]string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
 	cli := dc.cli
 
 	// pull image
@@ -109,7 +120,9 @@ func (dc *DockerClient) CreateContainer(ctx context.Context, name string, image 
 	return resp.ID, nil
 }
 
-func (dc *DockerClient) ContainerStatus(ctx context.Context, name string) (container.ContainerState, error) {
+func (dc *DockerClient) ContainerStatus(name string) (container.ContainerState, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
 	cli := dc.cli
 
 	resp, err := cli.ContainerInspect(ctx, name)
@@ -119,7 +132,9 @@ func (dc *DockerClient) ContainerStatus(ctx context.Context, name string) (conta
 	return resp.State.Status, nil
 }
 
-func (dc *DockerClient) ContainerHealth(ctx context.Context, name string) (container.HealthStatus, error) {
+func (dc *DockerClient) ContainerHealth(name string) (container.HealthStatus, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
 	cli := dc.cli
 
 	resp, err := cli.ContainerInspect(ctx, name)
@@ -129,7 +144,9 @@ func (dc *DockerClient) ContainerHealth(ctx context.Context, name string) (conta
 	return resp.State.Health.Status, nil
 }
 
-func (dc *DockerClient) GetContainerLogs(ctx context.Context, name string, n string) (string, error) {
+func (dc *DockerClient) GetContainerLogs(name string, n string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
 	cli := dc.cli
 
 	reader, err := cli.ContainerLogs(ctx, name, container.LogsOptions{ShowStdout: true, ShowStderr: true, Tail: n})

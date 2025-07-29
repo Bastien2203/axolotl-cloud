@@ -8,15 +8,26 @@
 Easily create, import, and configure containers per project — all from a clean web UI.
 
 
-Create a `.env` file in the backend directory with the following content:
-
 ```sh
-HTTP_PORT=8080
-VOLUMES_PATH="/path/to/volumes" # Absolute path to the volumes directory
-DATABASE_PATH=./data.db
+mkdir -p ./volumes
+mkdir -p ./data
 ```
 
-```sh
-mkdir -p /path/to/volumes
-```
+```yml
+services:
+  app:
+    image: ghcr.io/bastien2203/axolotl-cloud:latest
+    ports:
+      - "8080:8080"
+    environment:
+      HTTP_PORT: 8080
+      ENV: production
+      VOLUMES_PATH: /app/volumes
+      GIN_MODE: release
+      DATABASE_PATH: /app/data/data.db
+    volumes:
+      - ./volumes:/app/volumes
+      - ./data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
 
+```

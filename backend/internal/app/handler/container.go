@@ -174,7 +174,7 @@ func (h *ContainerHandler) DeleteContainer(c *gin.Context) {
 		return
 	}
 
-	if err := h.DockerClient.RemoveContainer(c.Request.Context(), container.Name); err != nil {
+	if err := h.DockerClient.RemoveContainer(container.Name); err != nil {
 		c.JSON(500, gin.H{"error": "Failed to remove container from Docker"})
 		return
 	}
@@ -196,7 +196,7 @@ func (h *ContainerHandler) GetContainerStatus(c *gin.Context) {
 		c.JSON(404, gin.H{"error": "Container not found"})
 		return
 	}
-	status, err := h.DockerClient.ContainerStatus(c.Request.Context(), container.Name)
+	status, err := h.DockerClient.ContainerStatus(container.Name)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "Failed to get container status"})
 		return
@@ -218,21 +218,21 @@ func (h *ContainerHandler) StartContainer(c *gin.Context) {
 		return
 	}
 
-	containerIsCreated, err := h.DockerClient.ContainerExists(c.Request.Context(), container.Name)
+	containerIsCreated, err := h.DockerClient.ContainerExists(container.Name)
 	if err != nil {
 		logger.Error("Failed to check if container exists", err)
 		c.JSON(500, gin.H{"error": "Failed to check if container exists"})
 		return
 	}
 	if !containerIsCreated {
-		if _, err := h.DockerClient.CreateContainer(c.Request.Context(), container.Name, container.DockerImage, container.Ports, container.Env, container.Volumes); err != nil {
+		if _, err := h.DockerClient.CreateContainer(container.Name, container.DockerImage, container.Ports, container.Env, container.Volumes); err != nil {
 			logger.Error("Failed to create container in Docker", err)
 			c.JSON(500, gin.H{"error": "Failed to create container in Docker"})
 			return
 		}
 	}
 
-	if _, err := h.DockerClient.StartContainer(c.Request.Context(), container.Name); err != nil {
+	if _, err := h.DockerClient.StartContainer(container.Name); err != nil {
 		logger.Error("Failed to start container", err)
 		c.JSON(500, gin.H{"error": "Failed to start container"})
 		return
@@ -254,7 +254,7 @@ func (h *ContainerHandler) StopContainer(c *gin.Context) {
 		return
 	}
 
-	if err := h.DockerClient.StopContainer(c.Request.Context(), container.Name); err != nil {
+	if err := h.DockerClient.StopContainer(container.Name); err != nil {
 		c.JSON(500, gin.H{"error": "Failed to stop container"})
 		return
 	}
@@ -276,7 +276,7 @@ func (h *ContainerHandler) GetContainerLogs(c *gin.Context) {
 	}
 
 	tail := c.Query("tail")
-	logs, err := h.DockerClient.GetContainerLogs(c.Request.Context(), container.Name, tail)
+	logs, err := h.DockerClient.GetContainerLogs(container.Name, tail)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "Failed to get container logs"})
 		return

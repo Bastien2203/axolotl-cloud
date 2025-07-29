@@ -9,7 +9,8 @@ import (
 
 var expectedEnvVars = []string{
 	"HTTP_PORT",
-	"VOLUMES_PATH",
+	"VOLUMES_PATH_HOST",
+	"VOLUMES_PATH_CONTAINER",
 	"DATABASE_PATH",
 }
 

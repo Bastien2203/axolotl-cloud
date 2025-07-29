@@ -2,6 +2,7 @@ package docker
 
 import (
 	"axolotl-cloud/infra/shared"
+	"axolotl-cloud/utils"
 	"context"
 	"fmt"
 	"io"
@@ -99,14 +100,21 @@ func (dc *DockerClient) CreateContainer(name string, image string, ports map[str
 
 	// volumes
 	var mounts []mount.Mount
-	volumesPath := shared.GetEnv("VOLUMES_PATH")
+	volumesPathHost := shared.GetEnv("VOLUMES_PATH_HOST")
+	volumesPathContainer := shared.GetEnv("VOLUMES_PATH_CONTAINER")
+
 	for hostPath, containerPath := range volumes {
-		source := fmt.Sprintf("%s/%s/%s", volumesPath, name, hostPath)
-		fmt.Println("Creating volume at:", source)
-		if err := os.MkdirAll(source, 0755); err != nil {
-			return "", fmt.Errorf("failed to create volume directory %s: %w", source, err)
+		sourceHost := hostPath
+		if !utils.IsAbsolutePath(hostPath) {
+			sourceContainer := fmt.Sprintf("%s/%s/%s", volumesPathContainer, name, hostPath)
+			fmt.Println("Creating volume at:", sourceContainer)
+			if err := os.MkdirAll(sourceContainer, 0755); err != nil {
+				return "", fmt.Errorf("failed to create volume directory %s: %w", sourceContainer, err)
+			}
+			sourceHost = fmt.Sprintf("%s/%s/%s", volumesPathHost, name, hostPath)
 		}
-		mounts = append(mounts, mount.Mount{Type: mount.TypeBind, Source: source, Target: containerPath})
+
+		mounts = append(mounts, mount.Mount{Type: mount.TypeBind, Source: sourceHost, Target: containerPath})
 	}
 
 	config := &container.Config{Image: image, Env: envVars, ExposedPorts: exposed}

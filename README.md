@@ -4,6 +4,8 @@
 
 <h1 align="center">Axolotl Cloud</h1>
 
+**Axolotl Cloud** is a lightweight self-hosted platform to manage and run your Docker-based projects.
+Easily create, import, and configure containers per project — all from a clean web UI.
 
 
 Create a `.env` file in the backend directory with the following content:

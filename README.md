@@ -1,4 +1,9 @@
-# axolotl-cloud
+<p align="center">
+  <img src="./.github/images/axolotl-cloud.png" alt="Logo" width="200"/>
+</p>
+
+<h1 align="center">Axolotl Cloud</h1>
+
 
 
 Create a `.env` file in the backend directory with the following content:

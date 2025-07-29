@@ -1,4 +1,4 @@
-import { Folder, Rocket, Settings } from "lucide-react";
+import { Folder, Settings } from "lucide-react";
 import { Link, Outlet } from "react-router-dom"
 
 
@@ -14,7 +14,6 @@ const Base = () => {
 
             <nav>
                 <NavItem to="/" label="Projects" icon={<Folder />} />
-                <NavItem to="/deployments" label="Deployments" icon={<Rocket />} />
                 <NavItem to="/settings" label="Settings" icon={<Settings />} />
             </nav>
         </div>

@@ -1,20 +1,22 @@
 package db
 
 import (
-	"axolotl-cloud/internal/app/project"
+	"axolotl-cloud/infra/shared"
+	"axolotl-cloud/internal/app/model"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
 func InitDB() (*gorm.DB, error) {
-	db, err := gorm.Open(sqlite.Open("data.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(shared.GetEnv("DATABASE_PATH")), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
 
 	err = db.AutoMigrate(
-		&project.Project{},
+		&model.Project{},
+		&model.Container{},
 	)
 	return db, err
 }

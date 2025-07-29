@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom"
 import Base from "./components/layouts/Base"
 import Projects from "./components/pages/Projects"
+import ProjectDetails from "./components/pages/ProjectDetails"
 
 
 const Router= () => {
@@ -12,6 +13,10 @@ const Router= () => {
                 {
                     index: true,
                     element: <Projects />
+                },
+                {
+                    path: "/projects/:projectId",
+                    element: <ProjectDetails />
                 }
             ]
         },  

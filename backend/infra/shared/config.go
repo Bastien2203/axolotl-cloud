@@ -9,13 +9,18 @@ import (
 
 var expectedEnvVars = []string{
 	"HTTP_PORT",
+	"VOLUMES_PATH",
+	"DATABASE_PATH",
 }
 
 func LoadEnv() error {
-	err := godotenv.Load()
-	if err != nil {
-		return fmt.Errorf("error loading .env file: %w", err)
+	if os.Getenv("ENV") != "production" {
+		err := godotenv.Load()
+		if err != nil {
+			return fmt.Errorf("error loading .env file: %w", err)
+		}
 	}
+
 	for _, envVar := range expectedEnvVars {
 		if value := os.Getenv(envVar); value == "" {
 			return fmt.Errorf("environment variable %s is not set", envVar)

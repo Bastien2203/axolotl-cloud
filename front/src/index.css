@@ -1,1 +1,29 @@
 @import "tailwindcss";
+
+html{
+    font-family: 'Inter', sans-serif;
+    @apply text-gray-900;
+}
+
+h1{
+    @apply text-2xl font-bold;
+}
+
+h2{
+    @apply text-xl font-semibold;
+}
+
+h3{
+    @apply text-lg font-semibold;
+}
+
+
+
+
+.bg-primary {
+    @apply bg-blue-500;
+}
+
+button {
+    cursor: pointer;
+}

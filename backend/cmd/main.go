@@ -3,6 +3,7 @@ package main
 import (
 	"axolotl-cloud/api"
 	"axolotl-cloud/infra/db"
+	"axolotl-cloud/infra/docker"
 	"axolotl-cloud/infra/shared"
 
 	"github.com/gin-gonic/gin"
@@ -20,7 +21,14 @@ func main() {
 		panic(err)
 	}
 
+	dockerClient, err := docker.NewDockerClient()
+	if err != nil {
+		panic(err)
+	}
+	defer dockerClient.Close()
+
 	r := gin.Default()
-	api.RegisterRoutes(r, db)
+	api.RegisterMiddlewares(r)
+	api.RegisterRoutes(r, db, dockerClient)
 	r.Run(":" + shared.GetEnv("HTTP_PORT"))
 }

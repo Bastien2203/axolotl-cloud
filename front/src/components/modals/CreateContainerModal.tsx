@@ -47,7 +47,7 @@ const CreateContainerModal = ({ onClose, onCreate, defaultValue }: { onClose: ()
                 <KeyValueEditor
                     label="Ports"
                     addLabel="Add Port"
-                    data={newContainer.ports}
+                    data={newContainer.ports || {}}
                     onChange={(ports) => setNewContainer({ ...newContainer, ports })}
                     placeholderKey="Host Port"
                     placeholderValue="Container Port"
@@ -57,7 +57,7 @@ const CreateContainerModal = ({ onClose, onCreate, defaultValue }: { onClose: ()
                 <KeyValueEditor
                     label="Environment Variables"
                     addLabel="Add Variable"
-                    data={newContainer.env}
+                    data={newContainer.env || {}}
                     onChange={(env) => setNewContainer({ ...newContainer, env })}
                     placeholderKey="Key"
                     placeholderValue="Value"
@@ -67,7 +67,7 @@ const CreateContainerModal = ({ onClose, onCreate, defaultValue }: { onClose: ()
                 <KeyValueEditor
                     label="Volumes"
                     addLabel="Add Volume"
-                    data={newContainer.volumes}
+                    data={newContainer.volumes || {}}
                     onChange={(volumes) => setNewContainer({ ...newContainer, volumes })}
                     placeholderKey="Host Path"
                     placeholderValue="Container Path"
@@ -76,7 +76,7 @@ const CreateContainerModal = ({ onClose, onCreate, defaultValue }: { onClose: ()
 
                 <StringListEditor
                     label="Networks"
-                    data={newContainer.networks}
+                    data={newContainer.networks || []}
                     onChange={(networks) => setNewContainer({ ...newContainer, networks })}
                     addLabel="Add Network"
                     placeholder="network_name"

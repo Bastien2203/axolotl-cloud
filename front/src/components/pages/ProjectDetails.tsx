@@ -231,7 +231,7 @@ const ContainerCard = ({ container, onDelete, onEdit, containerStatus, startCont
                     <details className="group">
                         <summary className="cursor-pointer font-medium text-gray-800">Ports</summary>
                         <ul className="ml-4 list-disc mt-1">
-                            {Object.entries(container.ports).length > 0 ? (
+                            {container.ports && Object.entries(container.ports).length > 0 ? (
                                 Object.entries(container.ports).map(([hostPort, containerPort]) => (
                                     <li key={hostPort}>{hostPort} → {containerPort}</li>
                                 ))
@@ -244,7 +244,7 @@ const ContainerCard = ({ container, onDelete, onEdit, containerStatus, startCont
                     <details className="group">
                         <summary className="cursor-pointer font-medium text-gray-800">Environment Variables</summary>
                         <ul className="ml-4 list-disc mt-1">
-                            {Object.entries(container.env).length > 0 ? (
+                            {container.env && Object.entries(container.env).length > 0 ? (
                                 Object.entries(container.env).map(([key, value]) => (
                                     <li key={key}><span className="font-mono">{key}</span>: {value}</li>
                                 ))
@@ -257,7 +257,7 @@ const ContainerCard = ({ container, onDelete, onEdit, containerStatus, startCont
                     <details className="group">
                         <summary className="cursor-pointer font-medium text-gray-800">Volumes</summary>
                         <ul className="ml-4 list-disc mt-1">
-                            {Object.entries(container.volumes).length > 0 ? (
+                            {container.volumes && Object.entries(container.volumes).length > 0 ? (
                                 Object.entries(container.volumes).map(([host, target]) => (
                                     <li key={host}>{host} → {target}</li>
                                 ))

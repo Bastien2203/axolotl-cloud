@@ -70,7 +70,7 @@ func (dc *DockerClient) RemoveContainer(name string) error {
 	return nil
 }
 
-func (dc *DockerClient) CreateContainer(name string, image string, ports map[string]string, env map[string]string, volumes map[string]string) (string, error) {
+func (dc *DockerClient) CreateContainer(name string, image string, ports map[string]string, env map[string]string, volumes map[string]string, networkMode string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 	cli := dc.cli
@@ -119,6 +119,9 @@ func (dc *DockerClient) CreateContainer(name string, image string, ports map[str
 
 	config := &container.Config{Image: image, Env: envVars, ExposedPorts: exposed}
 	hostConfig := &container.HostConfig{PortBindings: bindings, Mounts: mounts}
+	if networkMode != "" {
+		hostConfig.NetworkMode = container.NetworkMode(networkMode)
+	}
 
 	resp, err := cli.ContainerCreate(ctx, config, hostConfig, nil, nil, name)
 	if err != nil {

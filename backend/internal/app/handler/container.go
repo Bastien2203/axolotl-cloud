@@ -226,7 +226,7 @@ func (h *ContainerHandler) StartContainer(c *gin.Context) {
 		return
 	}
 	if !containerIsCreated {
-		if _, err := h.DockerClient.CreateContainer(container.Name, container.DockerImage, container.Ports, container.Env, container.Volumes); err != nil {
+		if _, err := h.DockerClient.CreateContainer(container.Name, container.DockerImage, container.Ports, container.Env, container.Volumes, container.NetworkMode); err != nil {
 			logger.Error("Failed to create container in Docker", err)
 			c.JSON(500, gin.H{"error": "Failed to create container in Docker"})
 			return

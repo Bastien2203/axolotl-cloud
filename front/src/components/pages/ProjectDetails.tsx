@@ -92,7 +92,7 @@ const ProjectDetails = () => {
             <div className="w-full m-4">
                 <div className="flex justify-between items-center w-full">
                     <div className="flex items-center gap-2">
-                        <ArrowLeft className="cursor-pointer" onClick={() => navigate(-1)} />
+                        <ArrowLeft className="cursor-pointer" onClick={() => navigate('/')} />
                         <h2 className="">{project.name}</h2>
                         <img src={project.icon_url} alt={`${project.name} icon`} className="w-8 h-8 rounded-full" />
                     </div>

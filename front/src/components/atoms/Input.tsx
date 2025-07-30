@@ -4,7 +4,7 @@ import { cn } from "../../libs/utils/cn"
 
 type InputProps = {
   name: string
-  type?: string
+  type?: React.InputHTMLAttributes<HTMLInputElement>["type"]
   placeholder?: string
   value?: string
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void

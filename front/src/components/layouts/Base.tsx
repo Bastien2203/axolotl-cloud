@@ -6,9 +6,10 @@ const Base = () => {
     return <div className="flex">
 
         <div className="w-64 h-screen bg-gray-50 p-4">
-            <div>
+            <Link className="flex flex-col items-center" to="/">
+                <img src="/icon.png" alt="Axolotl Cloud Logo" className="w-16 h-16 mb-4" />
                 <h1 className="text-xl">Axolotl Cloud</h1>
-            </div>
+            </Link>
 
             <hr className="my-4 border-gray-300" />
 

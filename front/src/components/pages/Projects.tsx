@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { createProject, getProjects } from "../../api/projects";
 import Button from "../atoms/Button";
-import { Plus } from "lucide-react";
+import { Plus, SquareArrowOutUpRight } from "lucide-react";
 import CreateProjectModal from "../modals/CreateProjectModal";
 import { useToast } from "../../contexts/ToastContext";
 import type { Project } from "../../api/types";
@@ -45,9 +45,9 @@ const Projects = () => {
 
             </div>
             <div className="grid grid-cols-[repeat(auto-fill,minmax(10em,1fr))] gap-4 p-4">
-            {projects.map(p => (
-                <ProjectCard key={p.id} project={p} onClick={() => handleProjectClick(p)} />
-            ))}
+                {projects.map(p => (
+                    <ProjectCard key={p.id} project={p} onClick={() => handleProjectClick(p)} />
+                ))}
             </div>
         </div>
     );
@@ -57,6 +57,17 @@ const Projects = () => {
 const ProjectCard = ({ project, onClick }: { project: Project, onClick: () => void }) => {
     return (
         <div className="shadow p-4 rounded w-[10em] aspect-square flex flex-col items-center justify-between hover:opacity-80 hover:bg-gray-100 cursor-pointer relative bg-white" onClick={onClick}>
+            {
+                project.website_url !== "" && project.website_url !== undefined && (
+                    <a className="absolute top-2 right-2 cursor-pointer text-blue-500 hover:text-blue-700" onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(project.website_url, "_blank");
+                    }}>
+                        <SquareArrowOutUpRight />
+                    </a>
+                )
+            }
+
             <div></div>
             <img src={project.icon_url} alt={`${project.name} icon`} className="w-12 h-auto" />
             <h3 >{project.name}</h3>

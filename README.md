@@ -22,16 +22,19 @@ services:
     environment:
       HTTP_PORT: 8080
       ENV: production
-      VOLUMES_PATH: /path/to/volumes # change this to your desired volumes path (e.g., /home/user/axolotl-cloud/volumes)
+      VOLUMES_PATH_HOST: /home/user/axolotl-cloud/volumes # change this to your desired volumes path (e.g., /home/user/axolotl-cloud/volumes)
+      VOLUMES_PATH_CONTAINER: /app/volumes
       GIN_MODE: release
       DATABASE_PATH: /app/data/data.db
     volumes:
-      - ./volumes:/app/volumes
-      - ./data:/app/data
+      - /home/user/axolotl-cloud/volumes:/app/volumes
+      - /home/user/axolotl-cloud/data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
 
 ```
 
 
 // TODO : 
-volume : source path if absolute, then do not concatenate with VOLUMES_PATH
+network_mode: host
+
+build project

@@ -12,6 +12,7 @@ const CreateProjectModal = ({ onClose, onCreate }: { onClose: () => void, onCrea
     const [newProject, setNewProject] = useState<CreationProject>({
         name: "",
         icon_url: "",
+        website_url: "", // Optional field for project website URL
     });
     const toast = useToast();
 
@@ -35,6 +36,7 @@ const CreateProjectModal = ({ onClose, onCreate }: { onClose: () => void, onCrea
             }} className="flex flex-col gap-4">
                 <Input type="text" name="name" className="w-full " placeholder="Project name" required onChange={(e) => setNewProject({ ...newProject, name: e.target.value })} />
                 <Input type="text" name="icon_url" className="w-full" placeholder="Icon URL" onChange={(e) => setNewProject({ ...newProject, icon_url: e.target.value })} />
+                <Input type="url" name="website_url" className="w-full" placeholder="Website URL"  onChange={(e) => setNewProject({ ...newProject, website_url: e.target.value })} value={newProject.website_url} />
 
                 <hr className="my-4 border-gray-300" />
 

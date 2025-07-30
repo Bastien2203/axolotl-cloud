@@ -87,6 +87,7 @@ func (h *ContainerHandler) ImportComposeFile(c *gin.Context) {
 			Env:         service.Env,
 			Volumes:     parseVolumes(service.Volumes),
 			Networks:    parseNetworks(service.Networks),
+			NetworkMode: service.NetworkMode,
 		}
 		if err := h.ContainerRepository.Create(c.Request.Context(), &container); err != nil {
 			c.JSON(500, gin.H{"error": fmt.Sprintf("Failed to create container %s", name)})

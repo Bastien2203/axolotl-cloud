@@ -5,7 +5,10 @@ export type Project = {
   icon_url: string
   created_at: string
   updated_at: string
+  website_url: string
 }
+
+export type NetworkMode = "host" | "bridge" | "none"
 
 export type Container = {
   id: string
@@ -14,6 +17,7 @@ export type Container = {
   ports: Record<string, string>
   env: Record<string, string>
   volumes: Record<string, string>
+  network_mode: NetworkMode
   networks: string[]
 }
 

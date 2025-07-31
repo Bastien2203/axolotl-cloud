@@ -35,6 +35,8 @@ services:
 
 
 // TODO : 
-network_mode: host
-
-build project
+- build project
+- project templates 
+- user management
+- volumes management (+backups)
+- images management

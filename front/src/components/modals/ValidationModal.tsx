@@ -1,4 +1,5 @@
-import Button, { type Variant } from "../atoms/Button";
+import type { Variant } from "../../libs/utils/variant";
+import Button from "../atoms/Button";
 import Modal from "../atoms/Modal";
 
 

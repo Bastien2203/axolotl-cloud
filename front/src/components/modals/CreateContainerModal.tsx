@@ -98,6 +98,7 @@ const CreateContainerModal = ({ onClose, onCreate, defaultValue }: { onClose: ()
                     onChange={(networks) => setNewContainer({ ...newContainer, networks })}
                     addLabel="Add Network"
                     placeholder="network_name"
+                    variant="secondary"
                 />
 
 

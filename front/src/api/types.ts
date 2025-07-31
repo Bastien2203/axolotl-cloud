@@ -51,3 +51,12 @@ export type JobLog = {
   created_at: string
   line: string
 }
+
+export type Volume = {
+  size: number
+  source: string
+  destination: string
+  type: string // e.g., "local", "nfs", etc.
+  container_id: string
+  project_id: string
+}

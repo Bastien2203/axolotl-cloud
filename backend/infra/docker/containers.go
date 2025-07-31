@@ -2,6 +2,7 @@ package docker
 
 import (
 	"axolotl-cloud/infra/shared"
+	"axolotl-cloud/internal/app/model"
 	"axolotl-cloud/utils"
 	"context"
 	"fmt"
@@ -162,4 +163,69 @@ func (dc *DockerClient) GetContainerLogs(ctx context.Context, name string, n str
 	}
 
 	return string(logs), nil
+}
+
+func (dc *DockerClient) ContainerVolumes(ctx context.Context, name string) ([]*model.Volume, error) {
+	cli := dc.cli
+
+	if exists, err := dc.ContainerExists(ctx, name, func(msg string) {}); err != nil || !exists {
+		return []*model.Volume{}, nil
+	}
+
+	resp, err := cli.ContainerInspect(ctx, name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to inspect container %s: %w", name, err)
+	}
+
+	var volumes []*model.Volume
+	for _, mount := range resp.Mounts {
+		volumes = append(volumes, &model.Volume{
+			Source:      mount.Source,
+			Destination: mount.Destination,
+			Type:        typeToString(mount.Type),
+			Size:        getSize(mount.Source),
+		})
+	}
+
+	return volumes, nil
+}
+
+// Get size in bytes of a file or directory
+func getSize(path string) int64 {
+	info, err := os.Stat(path)
+	if err != nil {
+		fmt.Printf("Error getting size for %s: %v\n", path, err)
+		return 0 // or handle error as needed
+	}
+	if info.IsDir() {
+		size := int64(0)
+		files, err := os.ReadDir(path)
+		if err != nil {
+			return 0 // or handle error as needed
+		}
+		for _, file := range files {
+			size += getSize(fmt.Sprintf("%s/%s", path, file.Name()))
+		}
+		return size
+	}
+	return info.Size()
+}
+
+func typeToString(t mount.Type) string {
+	switch t {
+	case mount.TypeBind:
+		return "bind"
+	case mount.TypeVolume:
+		return "volume"
+	case mount.TypeTmpfs:
+		return "tmpfs"
+	case mount.TypeNamedPipe:
+		return "npipe"
+	case mount.TypeCluster:
+		return "cluster"
+	case mount.TypeImage:
+		return "image"
+	default:
+		return "unknown"
+	}
 }

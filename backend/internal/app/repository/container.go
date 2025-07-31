@@ -37,3 +37,12 @@ func (repo *ContainerRepository) Save(ctx context.Context, container *model.Cont
 func (repo *ContainerRepository) Delete(ctx context.Context, id uint) error {
 	return repo.DB.WithContext(ctx).Delete(&model.Container{}, id).Error
 }
+
+func (repo *ContainerRepository) GetAllContainers(ctx context.Context) ([]model.Container, error) {
+	var containers []model.Container
+	err := repo.DB.WithContext(ctx).Find(&containers).Error
+	if err != nil {
+		return nil, err
+	}
+	return containers, nil
+}

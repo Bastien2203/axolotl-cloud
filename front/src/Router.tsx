@@ -4,6 +4,7 @@ import Projects from "./components/pages/Projects"
 import ProjectDetails from "./components/pages/ProjectDetails"
 import Jobs from "./components/pages/Jobs"
 import JobDetails from "./components/pages/JobDetails"
+import Volumes from "./components/pages/Volumes"
 
 
 const Router= () => {
@@ -27,6 +28,10 @@ const Router= () => {
                 {
                     path: "/jobs/:jobId",
                     element: <JobDetails />
+                },
+                {
+                    path: "/volumes",
+                    element: <Volumes />
                 }
             ]
         },  

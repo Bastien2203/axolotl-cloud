@@ -26,16 +26,19 @@ export const updateContainer = async (projectId: string, containerId: string, co
     return res.data;
 }
 
-export const deleteContainer = async (projectId: string, containerId: string): Promise<void> => {
-    await http.delete(`/projects/${projectId}/containers/${containerId}`);
+export const deleteContainer = async (projectId: string, containerId: string): Promise<{ job_id: string }> => {
+    const res = await http.delete(`/projects/${projectId}/containers/${containerId}`);
+    return res.data;
 }
 
-export const startContainer = async (projectId: string, containerId: string): Promise<void> => {
-    await http.post(`/projects/${projectId}/containers/${containerId}/start`);
+export const startContainer = async (projectId: string, containerId: string): Promise<{ job_id: string }> => {
+    const res = await http.post(`/projects/${projectId}/containers/${containerId}/start`);
+    return res.data;
 }
 
-export const stopContainer = async (projectId: string, containerId: string): Promise<void> => {
-    await http.post(`/projects/${projectId}/containers/${containerId}/stop`);
+export const stopContainer = async (projectId: string, containerId: string): Promise<{ job_id: string }> => {
+    const res = await http.post(`/projects/${projectId}/containers/${containerId}/stop`);
+    return res.data;
 }
 
 

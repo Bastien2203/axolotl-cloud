@@ -19,9 +19,10 @@ export type Container = {
   volumes: Record<string, string>
   network_mode: NetworkMode
   networks: string[]
+  last_job?: Job
 }
 
-export type ContainerStatus = "created" | "running" | "paused" | "restarting" | "removing" | "exited" | "dead"
+export type ContainerStatus = "created" | "running" | "paused" | "restarting" | "removing" | "exited" | "dead" | "loading"
 
 export const statusColors: Record<ContainerStatus, string> = {
   created: "bg-gray-200 text-gray-800",
@@ -31,4 +32,22 @@ export const statusColors: Record<ContainerStatus, string> = {
   removing: "bg-red-200 text-red-800",
   exited: "bg-gray-400 text-gray-800",
   dead: "bg-black text-white",
+  loading: "bg-gray-300 text-gray-800",
+}
+
+export type JobStatus = "pending" | "running" | "completed" | "failed"
+
+export type Job = {
+  id: string
+  name: string
+  status: JobStatus
+  created_at: number
+  updated_at: number
+  logs?: JobLog[]
+}
+
+export type JobLog = {
+  id: string
+  created_at: string
+  line: string
 }

@@ -3,8 +3,10 @@ package handler
 import (
 	"axolotl-cloud/infra/docker"
 	"axolotl-cloud/infra/logger"
+	"axolotl-cloud/infra/worker"
 	"axolotl-cloud/internal/app/model"
 	"axolotl-cloud/internal/app/repository"
+	"context"
 	"fmt"
 	"strings"
 
@@ -18,6 +20,7 @@ import (
 type ContainerHandler struct {
 	ContainerRepository *repository.ContainerRepository
 	ProjectRepository   *repository.ProjectRepository
+	JobWorker           *worker.Worker
 	DockerClient        *docker.DockerClient
 }
 
@@ -175,12 +178,23 @@ func (h *ContainerHandler) DeleteContainer(c *gin.Context) {
 		return
 	}
 
-	if err := h.DockerClient.RemoveContainer(container.Name); err != nil {
-		c.JSON(500, gin.H{"error": "Failed to remove container from Docker"})
+	jobId, err := h.JobWorker.AddJob(&model.Job{
+		Name: fmt.Sprintf("Remove container %s", container.Name),
+		Run: func(ctx context.Context, log func(string)) error {
+			if err := h.DockerClient.RemoveContainer(ctx, container.Name, log); err != nil {
+				return fmt.Errorf("failed to remove container %s: %w", container.Name, err)
+			}
+			return nil
+		},
+	}, containerID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": fmt.Sprintf("Failed to add job to remove container %s", container.Name)})
 		return
 	}
 
-	c.Status(204)
+	c.JSON(201, gin.H{
+		"job_id": jobId,
+	})
 }
 
 /// Docker operations
@@ -197,7 +211,8 @@ func (h *ContainerHandler) GetContainerStatus(c *gin.Context) {
 		c.JSON(404, gin.H{"error": "Container not found"})
 		return
 	}
-	status, err := h.DockerClient.ContainerStatus(container.Name)
+
+	status, err := h.DockerClient.ContainerStatus(c.Request.Context(), container.Name)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "Failed to get container status"})
 		return
@@ -219,27 +234,37 @@ func (h *ContainerHandler) StartContainer(c *gin.Context) {
 		return
 	}
 
-	containerIsCreated, err := h.DockerClient.ContainerExists(container.Name)
+	containerIsCreated, err := h.DockerClient.ContainerExists(c.Request.Context(), container.Name, logger.Info)
 	if err != nil {
 		logger.Error("Failed to check if container exists", err)
 		c.JSON(500, gin.H{"error": "Failed to check if container exists"})
 		return
 	}
-	if !containerIsCreated {
-		if _, err := h.DockerClient.CreateContainer(container.Name, container.DockerImage, container.Ports, container.Env, container.Volumes, container.NetworkMode); err != nil {
-			logger.Error("Failed to create container in Docker", err)
-			c.JSON(500, gin.H{"error": "Failed to create container in Docker"})
-			return
-		}
-	}
 
-	if _, err := h.DockerClient.StartContainer(container.Name); err != nil {
-		logger.Error("Failed to start container", err)
-		c.JSON(500, gin.H{"error": "Failed to start container"})
+	jobId, err := h.JobWorker.AddJob(&model.Job{
+		Name: fmt.Sprintf("Start container %s", container.Name),
+		Run: func(ctx context.Context, log func(string)) error {
+			if !containerIsCreated {
+				if _, err := h.DockerClient.CreateContainer(ctx, container.Name, container.DockerImage, container.Ports, container.Env, container.Volumes, container.NetworkMode, log); err != nil {
+					return fmt.Errorf("failed to create container %s: %w", container.Name, err)
+				}
+			}
+
+			if _, err := h.DockerClient.StartContainer(ctx, container.Name, log); err != nil {
+				return fmt.Errorf("failed to start container %s: %w", container.Name, err)
+			}
+			return nil
+		},
+	}, containerID)
+
+	if err != nil {
+		c.JSON(500, gin.H{"error": fmt.Sprintf("Failed to add job to start container %s", container.Name)})
 		return
 	}
 
-	c.Status(204)
+	c.JSON(201, gin.H{
+		"job_id": jobId,
+	})
 }
 
 func (h *ContainerHandler) StopContainer(c *gin.Context) {
@@ -255,12 +280,23 @@ func (h *ContainerHandler) StopContainer(c *gin.Context) {
 		return
 	}
 
-	if err := h.DockerClient.StopContainer(container.Name); err != nil {
-		c.JSON(500, gin.H{"error": "Failed to stop container"})
+	jobId, err := h.JobWorker.AddJob(&model.Job{
+		Name: fmt.Sprintf("Stop container %s", container.Name),
+		Run: func(ctx context.Context, log func(string)) error {
+			if err := h.DockerClient.StopContainer(ctx, container.Name, log); err != nil {
+				return fmt.Errorf("failed to stop container %s: %w", container.Name, err)
+			}
+			return nil
+		},
+	}, containerID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": fmt.Sprintf("Failed to add job to stop container %s", container.Name)})
 		return
 	}
 
-	c.Status(204)
+	c.JSON(201, gin.H{
+		"job_id": jobId,
+	})
 }
 
 func (h *ContainerHandler) GetContainerLogs(c *gin.Context) {
@@ -277,7 +313,7 @@ func (h *ContainerHandler) GetContainerLogs(c *gin.Context) {
 	}
 
 	tail := c.Query("tail")
-	logs, err := h.DockerClient.GetContainerLogs(container.Name, tail)
+	logs, err := h.DockerClient.GetContainerLogs(c.Request.Context(), container.Name, tail)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "Failed to get container logs"})
 		return

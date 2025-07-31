@@ -2,6 +2,7 @@ package api
 
 import (
 	"axolotl-cloud/infra/docker"
+	"axolotl-cloud/infra/worker"
 	"axolotl-cloud/internal/app/handler"
 	"axolotl-cloud/internal/app/repository"
 
@@ -9,11 +10,12 @@ import (
 	"gorm.io/gorm"
 )
 
-func RegisterContainerRoutes(r *gin.RouterGroup, db *gorm.DB, dockerClient *docker.DockerClient) {
+func RegisterContainerRoutes(r *gin.RouterGroup, db *gorm.DB, dockerClient *docker.DockerClient, w *worker.Worker) {
 	containerHandler := &handler.ContainerHandler{
 		ContainerRepository: &repository.ContainerRepository{DB: db},
 		ProjectRepository:   &repository.ProjectRepository{DB: db},
 		DockerClient:        dockerClient,
+		JobWorker:           w,
 	}
 	containerGroup := r.Group("/projects/:id/containers")
 	{

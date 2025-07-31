@@ -17,13 +17,13 @@ func (repo *ContainerRepository) Create(ctx context.Context, container *model.Co
 
 func (repo *ContainerRepository) FindAllByProjectID(ctx context.Context, projectID uint) ([]model.Container, error) {
 	var containers []model.Container
-	err := repo.DB.WithContext(ctx).Where("project_id = ?", projectID).Find(&containers).Error
+	err := repo.DB.WithContext(ctx).Preload("LastJob").Where("project_id = ?", projectID).Find(&containers).Error
 	return containers, err
 }
 
 func (repo *ContainerRepository) FindByID(ctx context.Context, id uint) (*model.Container, error) {
 	var container model.Container
-	err := repo.DB.WithContext(ctx).First(&container, id).Error
+	err := repo.DB.WithContext(ctx).Preload("LastJob").First(&container, id).Error
 	if err != nil {
 		return nil, err
 	}

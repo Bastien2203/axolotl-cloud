@@ -12,4 +12,5 @@ type Container struct {
 	ProjectID   uint             `json:"project_id"`
 	Networks    utils.StringList `gorm:"type:text" json:"networks"`
 	NetworkMode string           `json:"network_mode" binding:"required,oneof=bridge host none" gorm:"default:bridge"`
+	LastJob     Job              `gorm:"foreignKey:ContainerID" json:"last_job"`
 }

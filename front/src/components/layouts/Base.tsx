@@ -1,4 +1,4 @@
-import { Folder, Settings } from "lucide-react";
+import { Activity, Folder, Settings } from "lucide-react";
 import { Link, Outlet } from "react-router-dom"
 
 
@@ -15,10 +15,15 @@ const Base = () => {
 
             <nav>
                 <NavItem to="/" label="Projects" icon={<Folder />} />
+                <NavItem to="/jobs" label="Jobs" icon={<Activity />} />
                 <NavItem to="/settings" label="Settings" icon={<Settings />} />
             </nav>
         </div>
-        <Outlet />
+        <div className="flex-1 h-screen overflow-y-auto ">
+            <div className="p-4">
+                <Outlet />
+            </div>
+        </div>
     </div>
 }
 

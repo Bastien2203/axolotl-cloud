@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"time"
 
 	"github.com/docker/docker/api/types/container"
 	dImage "github.com/docker/docker/api/types/image"
@@ -15,9 +14,7 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
-func (dc *DockerClient) ContainerExists(name string) (bool, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-	defer cancel()
+func (dc *DockerClient) ContainerExists(ctx context.Context, name string, log func(string)) (bool, error) {
 	cli := dc.cli
 	containers, err := cli.ContainerList(ctx, container.ListOptions{All: true})
 	if err != nil {
@@ -25,15 +22,15 @@ func (dc *DockerClient) ContainerExists(name string) (bool, error) {
 	}
 	for _, c := range containers {
 		if c.Names[0] == "/"+name {
+			log(fmt.Sprintf("Container %s exists", name))
 			return true, nil
 		}
 	}
+	log(fmt.Sprintf("Container %s does not exist", name))
 	return false, nil
 }
 
-func (dc *DockerClient) StartContainer(name string) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-	defer cancel()
+func (dc *DockerClient) StartContainer(ctx context.Context, name string, log func(string)) (string, error) {
 	cli := dc.cli
 
 	err := cli.ContainerStart(ctx, name, container.StartOptions{})
@@ -41,12 +38,11 @@ func (dc *DockerClient) StartContainer(name string) (string, error) {
 		return "", fmt.Errorf("failed to start container %s: %w", name, err)
 	}
 
+	log(fmt.Sprintf("Container %s started successfully", name))
 	return name, nil
 }
 
-func (dc *DockerClient) StopContainer(name string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-	defer cancel()
+func (dc *DockerClient) StopContainer(ctx context.Context, name string, log func(string)) error {
 	cli := dc.cli
 
 	err := cli.ContainerStop(ctx, name, container.StopOptions{})
@@ -54,12 +50,11 @@ func (dc *DockerClient) StopContainer(name string) error {
 		return fmt.Errorf("failed to stop container %s: %w", name, err)
 	}
 
+	log(fmt.Sprintf("Container %s stopped successfully", name))
 	return nil
 }
 
-func (dc *DockerClient) RemoveContainer(name string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-	defer cancel()
+func (dc *DockerClient) RemoveContainer(ctx context.Context, name string, log func(string)) error {
 	cli := dc.cli
 
 	err := cli.ContainerRemove(ctx, name, container.RemoveOptions{Force: true})
@@ -67,12 +62,11 @@ func (dc *DockerClient) RemoveContainer(name string) error {
 		return fmt.Errorf("failed to remove container %s: %w", name, err)
 	}
 
+	log(fmt.Sprintf("Container %s removed successfully", name))
 	return nil
 }
 
-func (dc *DockerClient) CreateContainer(name string, image string, ports map[string]string, env map[string]string, volumes map[string]string, networkMode string) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-	defer cancel()
+func (dc *DockerClient) CreateContainer(ctx context.Context, name string, image string, ports map[string]string, env map[string]string, volumes map[string]string, networkMode string, log func(string)) (string, error) {
 	cli := dc.cli
 
 	// pull image
@@ -82,6 +76,7 @@ func (dc *DockerClient) CreateContainer(name string, image string, ports map[str
 	}
 	io.Copy(io.Discard, reader)
 	reader.Close()
+	log(fmt.Sprintf("Image %s pulled successfully", image))
 
 	// ports
 	exposed := nat.PortSet{}
@@ -107,7 +102,7 @@ func (dc *DockerClient) CreateContainer(name string, image string, ports map[str
 		sourceHost := hostPath
 		if !utils.IsAbsolutePath(hostPath) {
 			sourceContainer := fmt.Sprintf("%s/%s/%s", volumesPathContainer, name, hostPath)
-			fmt.Println("Creating volume at:", sourceContainer)
+			log(fmt.Sprintf("Creating volume at: %s", sourceContainer))
 			if err := os.MkdirAll(sourceContainer, 0755); err != nil {
 				return "", fmt.Errorf("failed to create volume directory %s: %w", sourceContainer, err)
 			}
@@ -127,13 +122,12 @@ func (dc *DockerClient) CreateContainer(name string, image string, ports map[str
 	if err != nil {
 		return "", fmt.Errorf("failed to create container: %w", err)
 	}
+	log(fmt.Sprintf("Container %s created successfully", name))
 
 	return resp.ID, nil
 }
 
-func (dc *DockerClient) ContainerStatus(name string) (container.ContainerState, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-	defer cancel()
+func (dc *DockerClient) ContainerStatus(ctx context.Context, name string) (container.ContainerState, error) {
 	cli := dc.cli
 
 	resp, err := cli.ContainerInspect(ctx, name)
@@ -143,9 +137,7 @@ func (dc *DockerClient) ContainerStatus(name string) (container.ContainerState, 
 	return resp.State.Status, nil
 }
 
-func (dc *DockerClient) ContainerHealth(name string) (container.HealthStatus, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-	defer cancel()
+func (dc *DockerClient) ContainerHealth(ctx context.Context, name string) (container.HealthStatus, error) {
 	cli := dc.cli
 
 	resp, err := cli.ContainerInspect(ctx, name)
@@ -155,9 +147,7 @@ func (dc *DockerClient) ContainerHealth(name string) (container.HealthStatus, er
 	return resp.State.Health.Status, nil
 }
 
-func (dc *DockerClient) GetContainerLogs(name string, n string) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-	defer cancel()
+func (dc *DockerClient) GetContainerLogs(ctx context.Context, name string, n string) (string, error) {
 	cli := dc.cli
 
 	reader, err := cli.ContainerLogs(ctx, name, container.LogsOptions{ShowStdout: true, ShowStderr: true, Tail: n})

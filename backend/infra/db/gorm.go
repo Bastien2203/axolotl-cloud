@@ -17,6 +17,8 @@ func InitDB() (*gorm.DB, error) {
 	err = db.AutoMigrate(
 		&model.Project{},
 		&model.Container{},
+		&model.Job{},
+		&model.JobLog{},
 	)
 	return db, err
 }

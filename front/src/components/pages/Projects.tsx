@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 
-import { createProject, getProjects } from "../../api/projects";
+import { createProject, deleteProject, getProjects, updateProject } from "../../api/projects";
 import Button from "../atoms/Button";
-import { Plus, SquareArrowOutUpRight } from "lucide-react";
+import { Plus } from "lucide-react";
 import CreateProjectModal from "../modals/CreateProjectModal";
 import { useToast } from "../../contexts/ToastContext";
 import type { Project } from "../../api/types";
 import { useNavigate } from "react-router-dom";
+import ProjectCard from "../all/ProjectCard";
 
 
 const Projects = () => {
@@ -23,9 +24,30 @@ const Projects = () => {
         navigate(`/projects/${project.id}`);
     }
 
+    const handleDeleteProject = (project: Project) => {
+        deleteProject(project.id).then(() => {
+            setProjects((prev) => prev.filter(p => p.id !== project.id));
+            toast.success("Project deleted successfully!");
+        }).catch((error) => {
+            console.error("Failed to delete project:", error);
+            toast.error("Failed to delete project. Please try again.");
+        });
+    }
+
+    const handleEdit = (project: Project) => {
+        updateProject(project.id, project).then((updatedProject) => {
+            setProjects((prev) => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
+            toast.success("Project updated successfully!");
+        }).catch((error) => {
+            console.error("Failed to update project:", error);
+            toast.error("Failed to update project. Please try again.");
+        });
+    };
+
 
     return (
-        <div className="w-full m-4">
+        <>
+            <h1 className="text-2xl font-bold mb-4">Projects</h1>
             {createModalOpen && <CreateProjectModal onClose={() => setCreateModalOpen(false)} onCreate={(project) => {
                 createProject(project).then((newProject) => {
                     setProjects((prev) => [...prev, newProject]);
@@ -46,34 +68,13 @@ const Projects = () => {
             </div>
             <div className="grid grid-cols-[repeat(auto-fill,minmax(10em,1fr))] gap-4 p-4">
                 {projects.map(p => (
-                    <ProjectCard key={p.id} project={p} onClick={() => handleProjectClick(p)} />
+                    <ProjectCard key={p.id} project={p} onClick={() => handleProjectClick(p)} onDelete={handleDeleteProject} onEdit={handleEdit} />
                 ))}
             </div>
-        </div>
+        </>
     );
 }
 
-
-const ProjectCard = ({ project, onClick }: { project: Project, onClick: () => void }) => {
-    return (
-        <div className="shadow p-4 rounded w-[10em] aspect-square flex flex-col items-center justify-between hover:opacity-80 hover:bg-gray-100 cursor-pointer relative bg-white" onClick={onClick}>
-            {
-                project.website_url !== "" && project.website_url !== undefined && (
-                    <a className="absolute top-2 right-2 cursor-pointer text-blue-500 hover:text-blue-700" onClick={(e) => {
-                        e.stopPropagation();
-                        window.open(project.website_url, "_blank");
-                    }}>
-                        <SquareArrowOutUpRight />
-                    </a>
-                )
-            }
-
-            <div></div>
-            <img src={project.icon_url} alt={`${project.name} icon`} className="w-12 h-auto" />
-            <h3 >{project.name}</h3>
-        </div>
-    );
-}
 
 
 

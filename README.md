@@ -40,3 +40,6 @@ services:
 - user management
 - volumes management (+backups)
 - images management
+- Add link in front from container card (volume) to volume details page
+- When deleting a project, also delete associated containers 
+- When deleting a container, also delete associated volumes

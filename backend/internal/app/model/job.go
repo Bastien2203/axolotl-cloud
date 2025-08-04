@@ -8,7 +8,7 @@ type Job struct {
 	ID          uint                                              `gorm:"primaryKey" json:"id"`
 	Name        string                                            `json:"name"`
 	Run         func(ctx context.Context, log func(string)) error `gorm:"-" json:"-"`
-	Logs        []JobLog                                          `gorm:"foreignKey:JobID" json:"logs"`
+	Logs        []JobLog                                          `gorm:"foreignKey:JobID;references:ID" json:"logs"`
 	Status      JobStatus                                         `json:"status"`
 	CreatedAt   int64                                             `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt   int64                                             `json:"updated_at" gorm:"autoUpdateTime"`
@@ -16,8 +16,8 @@ type Job struct {
 }
 
 type JobLog struct {
-	ID        uint `gorm:"primaryKey" json:"id"`
-	JobID     uint
+	ID        uint   `gorm:"primaryKey" json:"id"`
+	JobID     uint   `json:"-"`
 	Line      string `json:"line"`
 	CreatedAt int64  `json:"created_at" gorm:"autoCreateTime"`
 }

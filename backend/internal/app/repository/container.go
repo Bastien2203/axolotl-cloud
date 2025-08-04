@@ -35,7 +35,15 @@ func (repo *ContainerRepository) Save(ctx context.Context, container *model.Cont
 }
 
 func (repo *ContainerRepository) Delete(ctx context.Context, id uint) error {
+	err := repo.DeleteAssociations(ctx, &model.Container{ID: id})
+	if err != nil {
+		return err
+	}
 	return repo.DB.WithContext(ctx).Delete(&model.Container{}, id).Error
+}
+
+func (repo *ContainerRepository) DeleteAssociations(ctx context.Context, container *model.Container) error {
+	return repo.DB.WithContext(ctx).Select("LastJob").Delete(container).Error
 }
 
 func (repo *ContainerRepository) GetAllContainers(ctx context.Context) ([]model.Container, error) {

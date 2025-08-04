@@ -244,10 +244,15 @@ func (h *ContainerHandler) StartContainer(c *gin.Context) {
 	jobId, err := h.JobWorker.AddJob(&model.Job{
 		Name: fmt.Sprintf("Start container %s", container.Name),
 		Run: func(ctx context.Context, log func(string)) error {
-			if !containerIsCreated {
-				if _, err := h.DockerClient.CreateContainer(ctx, container.Name, container.DockerImage, container.Ports, container.Env, container.Volumes, container.NetworkMode, log); err != nil {
-					return fmt.Errorf("failed to create container %s: %w", container.Name, err)
+			if containerIsCreated {
+				log("Container already exists, removing it before starting a new one")
+				if err := h.DockerClient.RemoveContainer(ctx, container.Name, log); err != nil {
+					return fmt.Errorf("failed to remove container %s: %w", container.Name, err)
 				}
+			}
+
+			if _, err := h.DockerClient.CreateContainer(ctx, container.Name, container.DockerImage, container.Ports, container.Env, container.Volumes, container.NetworkMode, log); err != nil {
+				return fmt.Errorf("failed to create container %s: %w", container.Name, err)
 			}
 
 			if _, err := h.DockerClient.StartContainer(ctx, container.Name, log); err != nil {

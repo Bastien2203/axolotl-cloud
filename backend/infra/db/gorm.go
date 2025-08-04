@@ -20,5 +20,6 @@ func InitDB() (*gorm.DB, error) {
 		&model.Job{},
 		&model.JobLog{},
 	)
+	db.Exec("PRAGMA foreign_keys = ON")
 	return db, err
 }

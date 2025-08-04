@@ -97,7 +97,7 @@ Open your browser and go to [http://localhost:8080](http://localhost:8080).
 
 ## 📌 Roadmap
 
-- [ ] Build container from project
+- [ ] Build container from project (git repo url)
 - [ ] Public project templates (e.g. Redis, Mealie, etc.)
 - [ ] User authentication & management
 - [ ] Volume backups & restore
@@ -105,3 +105,4 @@ Open your browser and go to [http://localhost:8080](http://localhost:8080).
 - [ ] Link from container card to volume details
 - [ ] Visualize container logs
 - [ ] Add webstockets for real-time updates
+

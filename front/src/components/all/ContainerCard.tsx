@@ -1,6 +1,6 @@
 import { Square, Play } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import clsx from "clsx";
 
 import type {
@@ -10,7 +10,6 @@ import type {
 } from "../../api/types";
 import { statusColors } from "../../api/types";
 import { useToast } from "../../contexts/ToastContext";
-import { hideModal, showModal } from "../../libs/utils/modal";
 
 import Spinner from "../atoms/Spinner";
 import JobStatusIcon from "../atoms/JobStatus";
@@ -18,6 +17,8 @@ import MoreMenu from "../atoms/MoreMenu";
 import CreateContainerModal from "../modals/CreateContainerModal";
 import ValidationModal from "../modals/ValidationModal";
 import { getJob } from "../../api/jobs";
+import LogsModal from "../modals/LogsModal";
+import { useDialog } from "../../hooks/useDialog";
 
 const ContainerCard = ({
     container,
@@ -38,6 +39,8 @@ const ContainerCard = ({
     const [loading, setLoading] = useState(false);
     const [freshJob, setFreshJob] = useState<Job | null>(container.last_job || null);
     const toast = useToast();
+    const {projectId} = useParams<{ projectId: string }>();
+    const { openDialog, closeDialog, dialog } = useDialog<"edit-container-modal" | "view-logs-modal" | `validation-modal-container-delete`>();
 
     useEffect(() => {
         const fetchStatus = async () => {
@@ -103,46 +106,58 @@ const ContainerCard = ({
         status ? statusColors[status] : "bg-gray-300"
     );
 
+    if (!projectId) return null;
+
     return (
         <>
-            <dialog id={`edit-container-modal-${container.id}`}>
+            {dialog("edit-container-modal", (
                 <CreateContainerModal
                     defaultValue={container}
-                    onClose={() => hideModal(`edit-container-modal-${container.id}`)}
+                    onClose={() => closeDialog("edit-container-modal")}
                     onCreate={(data) => {
                         onEdit({ ...container, ...data });
-                        hideModal(`edit-container-modal-${container.id}`);
+                        closeDialog("edit-container-modal");
                     }}
                 />
-            </dialog>
+            ))}
 
-            <dialog id={`validation-modal-container-delete-${container.id}`}>
+            {dialog("view-logs-modal", (
+                <LogsModal
+                    projectId={projectId}
+                    containerId={container.id}
+                    onClose={() => closeDialog("view-logs-modal")}
+                />
+            ))}
+
+            {dialog("validation-modal-container-delete", (
                 <ValidationModal
                     text="Are you sure you want to delete this container?"
                     label="Delete"
                     variant="danger"
-                    onClose={() =>
-                        hideModal(`validation-modal-container-delete-${container.id}`)
-                    }
+                    onClose={() => closeDialog("validation-modal-container-delete")}
                     onConfirm={() => {
                         onDelete(container);
-                        hideModal(`validation-modal-container-delete-${container.id}`);
+                        closeDialog("validation-modal-container-delete");
                     }}
                 />
-            </dialog>
+            ))}
 
             <MoreMenu
                 absolute
                 options={[
                     {
                         label: "Edit",
-                        onClick: () => showModal(`edit-container-modal-${container.id}`),
+                        onClick: () => openDialog(`edit-container-modal`),
+                    },
+                    {
+                        label: "View Logs",
+                        onClick: () => openDialog(`view-logs-modal`),
                     },
                     {
                         label: "Delete",
                         variant: "danger",
-                        onClick: () => showModal(`validation-modal-container-delete-${container.id}`),
-                    },
+                        onClick: () => openDialog(`validation-modal-container-delete`),
+                    }
                 ]}
             >
                <div className="relative p-6 rounded-2xl shadow-sm bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:shadow-md transition-all space-y-5 group">

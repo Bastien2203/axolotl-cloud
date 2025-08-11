@@ -320,6 +320,7 @@ func (h *ContainerHandler) GetContainerLogs(c *gin.Context) {
 	tail := c.Query("tail")
 	logs, err := h.DockerClient.GetContainerLogs(c.Request.Context(), container.Name, tail)
 	if err != nil {
+		logger.Error("Failed to get container logs", err)
 		c.JSON(500, gin.H{"error": "Failed to get container logs"})
 		return
 	}

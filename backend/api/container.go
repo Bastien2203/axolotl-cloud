@@ -28,7 +28,7 @@ func RegisterContainerRoutes(r *gin.RouterGroup, db *gorm.DB, dockerClient *dock
 		containerGroup.GET("/:containerId/status", containerHandler.GetContainerStatus)
 		containerGroup.POST("/:containerId/start", containerHandler.StartContainer)
 		containerGroup.POST("/:containerId/stop", containerHandler.StopContainer)
-		containerGroup.POST("/:containerId/logs", containerHandler.GetContainerLogs)
+		containerGroup.GET("/:containerId/logs", containerHandler.GetContainerLogs)
 		containerGroup.POST("/import", containerHandler.ImportComposeFile)
 	}
 }

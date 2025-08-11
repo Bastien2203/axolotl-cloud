@@ -103,6 +103,6 @@ Open your browser and go to [http://localhost:8080](http://localhost:8080).
 - [ ] Volume backups & restore
 - [ ] Docker image management (list, delete, pull)
 - [ ] Link from container card to volume details
-- [ ] Visualize container logs
+- [X] Visualize container logs
 - [ ] Add webstockets for real-time updates
 

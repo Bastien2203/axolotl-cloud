@@ -14,9 +14,12 @@ func (r *JobRepository) Save(job *model.Job) error {
 	return r.DB.Save(job).Error
 }
 
-func (r *JobRepository) AddLog(jobID uint, line string) error {
+func (r *JobRepository) AddLog(jobID uint, line string) (*model.JobLog, error) {
 	log := model.JobLog{JobID: jobID, Line: line}
-	return r.DB.Create(&log).Error
+	if err := r.DB.Create(&log).Error; err != nil {
+		return nil, err
+	}
+	return &log, nil
 }
 
 func (r *JobRepository) UpdateStatus(jobID uint, status model.JobStatus) error {

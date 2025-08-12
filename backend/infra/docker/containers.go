@@ -16,7 +16,7 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
-func (dc *DockerClient) ContainerExists(ctx context.Context, name string, log func(string)) (bool, error) {
+func (dc *DockerClient) ContainerExists(ctx context.Context, name string, log *logger.Logger) (bool, error) {
 	cli := dc.cli
 	containers, err := cli.ContainerList(ctx, container.ListOptions{All: true})
 	if err != nil {
@@ -24,11 +24,11 @@ func (dc *DockerClient) ContainerExists(ctx context.Context, name string, log fu
 	}
 	for _, c := range containers {
 		if c.Names[0] == "/"+name {
-			log(fmt.Sprintf("Container %s exists", name))
+			log.Info("Container %s exists", name)
 			return true, nil
 		}
 	}
-	log(fmt.Sprintf("Container %s does not exist", name))
+	log.Info("Container %s does not exist", name)
 	return false, nil
 }
 
@@ -191,7 +191,7 @@ func (dc *DockerClient) GetContainerLogs(ctx context.Context, name string, n str
 func (dc *DockerClient) ContainerVolumes(ctx context.Context, name string) ([]*model.Volume, error) {
 	cli := dc.cli
 
-	if exists, err := dc.ContainerExists(ctx, name, func(msg string) {}); err != nil || !exists {
+	if exists, err := dc.ContainerExists(ctx, name, logger.GlobalLogger); err != nil || !exists {
 		return []*model.Volume{}, nil
 	}
 

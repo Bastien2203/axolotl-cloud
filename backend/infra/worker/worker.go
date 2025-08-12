@@ -2,6 +2,7 @@ package worker
 
 import (
 	"axolotl-cloud/infra/logger"
+	"axolotl-cloud/infra/websocket"
 	"axolotl-cloud/internal/app/model"
 	"axolotl-cloud/internal/app/repository"
 	"context"
@@ -57,10 +58,23 @@ func (w *Worker) Start(ctx context.Context) {
 func RunJob(ctx context.Context, j *model.Job, repo *repository.JobRepository) {
 	repo.UpdateStatus(j.ID, model.JobStatusRunning)
 	repo.AddLog(j.ID, fmt.Sprintf("[INFO] Starting job: %s", j.Name))
+	topicName := fmt.Sprintf("job:%d", j.ID)
 
 	jobLogger := logger.NewLogger(func(level logger.LogLevel, msg string, args ...any) {
 		line := fmt.Sprintf("[%s] %s", level, fmt.Sprintf(msg, args...))
-		repo.AddLog(j.ID, line)
+		log, err := repo.AddLog(j.ID, line)
+		if err != nil {
+			logger.Error("Failed to add job log:", err)
+			return
+		}
+
+		websocket.SendMessageToTopic(topicName, websocket.WSMessage[websocket.JobLogPayload]{
+			Type: websocket.JobLogUpdateMessageType,
+			Data: websocket.JobLogPayload{
+				JobID: j.ID,
+				Log:   *log,
+			},
+		})
 	})
 
 	if err := j.Run(ctx, jobLogger); err != nil {
@@ -69,6 +83,18 @@ func RunJob(ctx context.Context, j *model.Job, repo *repository.JobRepository) {
 		return
 	}
 
-	repo.AddLog(j.ID, fmt.Sprintf("[SUCCESS] Job '%s' completed", j.Name))
+	log, err := repo.AddLog(j.ID, fmt.Sprintf("[SUCCESS] Job '%s' completed", j.Name))
+	if err != nil {
+		jobLogger.Error("Failed to add job completion log:", err)
+		return
+	}
+	websocket.SendMessageToTopic(topicName, websocket.WSMessage[websocket.JobLogPayload]{
+		Type: websocket.JobLogUpdateMessageType,
+		Data: websocket.JobLogPayload{
+			JobID: j.ID,
+			Log:   *log,
+		},
+	})
 	repo.UpdateStatus(j.ID, model.JobStatusCompleted)
+	websocket.UnsubscribeEveryoneFromTopic(topicName)
 }

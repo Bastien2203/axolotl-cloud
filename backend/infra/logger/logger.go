@@ -36,7 +36,7 @@ func (l *Logger) Debug(msg string, args ...any) {
 
 // Global log functions -------------
 
-var globalLogger = NewLogger(func(level LogLevel, msg string, args ...any) {
+var GlobalLogger = NewLogger(func(level LogLevel, msg string, args ...any) {
 	switch level {
 	case LevelInfo:
 		fmt.Printf("[INFO] "+msg+"\n", args...)
@@ -47,12 +47,12 @@ var globalLogger = NewLogger(func(level LogLevel, msg string, args ...any) {
 	}
 })
 
-func Info(msg string) {
-	globalLogger.Info(msg)
+func Info(msg string, args ...any) {
+	GlobalLogger.Info(msg, args...)
 }
 func Error(msg string, err error) {
-	globalLogger.Error(msg, err)
+	GlobalLogger.Error(msg, err)
 }
-func Debug(msg string) {
-	globalLogger.Debug(msg)
+func Debug(msg string, args ...any) {
+	GlobalLogger.Debug(msg, args...)
 }

@@ -5,6 +5,8 @@ import { getJob } from "../../api/jobs";
 import { useToast } from "../../contexts/ToastContext";
 import { ArrowLeft } from "lucide-react";
 import JobStatusIcon from "../atoms/JobStatus";
+import { wsService } from "../../websocket/websocket";
+import type { JobLogUpdateMessage } from "../../websocket/messages";
 
 const JobDetails = () => {
     const { jobId } = useParams<{ jobId: string }>();
@@ -15,11 +17,35 @@ const JobDetails = () => {
     useEffect(() => {
         if (jobId) {
             getJob(jobId)
-                .then(setJob)
+                .then((j) => {
+                    setJob(j);
+                    if (j.status !== 'failed' && j.status !== 'completed') {
+                        wsService.onConnect(() => {
+                            wsService.subscribe(`job:${jobId}`);
+                            wsService.onMessage<JobLogUpdateMessage>('job_log_update', (message) => {
+                                console.log("Received job log update:", message);
+                                setJob((prevJob) => {
+                                    if (!prevJob) return prevJob;
+                                    return {
+                                        ...prevJob,
+                                        logs: [...(prevJob.logs || []), message.data.log]
+                                    };
+                                });
+                            });
+                        })
+                    }
+
+                })
                 .catch(() => {
                     toast.error("Error fetching job details");
                 });
         }
+        return () => {
+            if (jobId) {
+                wsService.unsubscribe(`job:${jobId}`);
+                wsService.clearHandlers();
+            }
+        };
     }, [jobId]);
 
     if (!job) {

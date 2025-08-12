@@ -353,7 +353,7 @@ func (h *ContainerHandler) StartContainer(c *gin.Context) {
 		return
 	}
 
-	containerIsCreated, err := h.DockerClient.ContainerExists(c.Request.Context(), container.Name, logger.Info)
+	containerIsCreated, err := h.DockerClient.ContainerExists(c.Request.Context(), container.Name, logger.GlobalLogger)
 	if err != nil {
 		logger.Error("Failed to check if container exists", err)
 		c.JSON(500, gin.H{"error": "Failed to check if container exists"})

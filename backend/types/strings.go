@@ -1,8 +1,8 @@
-package utils
+package types
 
 import "fmt"
 
-func ToString(value interface{}) string {
+func ToString(value any) string {
 	if value == nil {
 		return ""
 	}

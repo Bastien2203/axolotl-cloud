@@ -11,5 +11,5 @@ type Project struct {
 	WebsiteURL string      `json:"website_url" gorm:"default:''"`
 	CreatedAt  time.Time   `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt  time.Time   `json:"updated_at" gorm:"autoUpdateTime"`
-	Containers []Container `json:"containers" gorm:"foreignKey:ProjectID"`
+	Containers []Container `json:"containers" gorm:"foreignKey:ProjectID;constraint:OnDelete:CASCADE"`
 }

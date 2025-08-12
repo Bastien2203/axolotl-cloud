@@ -20,10 +20,16 @@ func NewWorker(queueSize int, jobRepo *repository.JobRepository) *Worker {
 	}
 }
 
-func (w *Worker) AddJob(job *model.Job, containerId uint) (uint, error) {
+func (w *Worker) AddJob(job *model.Job, containerId *uint) (uint, error) {
 	job.Status = model.JobStatusPending
-	job.ContainerID = containerId
-	w.Repo.Save(job)
+	if containerId != nil {
+		job.ContainerID = containerId
+	}
+	err := w.Repo.Save(job)
+	if err != nil {
+		logger.Error("Failed to save job:", err)
+		return 0, fmt.Errorf("failed to save job: %w", err)
+	}
 	select {
 	case w.Jobs <- job:
 		return job.ID, nil
@@ -52,15 +58,13 @@ func RunJob(ctx context.Context, j *model.Job, repo *repository.JobRepository) {
 	repo.UpdateStatus(j.ID, model.JobStatusRunning)
 	repo.AddLog(j.ID, fmt.Sprintf("[INFO] Starting job: %s", j.Name))
 
-	log := func(logLine string) {
-		repo.AddLog(j.ID, fmt.Sprintf("[INFO] %s", logLine))
-		logger.Info(logLine)
-	}
+	jobLogger := logger.NewLogger(func(level logger.LogLevel, msg string, args ...any) {
+		line := fmt.Sprintf("[%s] %s", level, fmt.Sprintf(msg, args...))
+		repo.AddLog(j.ID, line)
+	})
 
-	if err := j.Run(ctx, log); err != nil {
-		fmt.Println("Job failed:", j.Name, err)
-		fmt.Printf("[ERROR] Job '%s' (id: %d) failed: %v\n", j.Name, j.ID, err)
-		repo.AddLog(j.ID, fmt.Sprintf("[ERROR] Job '%s' failed: %v", j.Name, err))
+	if err := j.Run(ctx, jobLogger); err != nil {
+		jobLogger.Error("Job failed", err.Error())
 		repo.UpdateStatus(j.ID, model.JobStatusFailed)
 		return
 	}

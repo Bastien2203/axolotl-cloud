@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"axolotl-cloud/infra/logger"
 	"axolotl-cloud/infra/shared"
 	"axolotl-cloud/internal/app/model"
 	"axolotl-cloud/utils"
@@ -31,7 +32,7 @@ func (dc *DockerClient) ContainerExists(ctx context.Context, name string, log fu
 	return false, nil
 }
 
-func (dc *DockerClient) StartContainer(ctx context.Context, name string, log func(string)) (string, error) {
+func (dc *DockerClient) StartContainer(ctx context.Context, name string, log *logger.Logger) (string, error) {
 	cli := dc.cli
 
 	err := cli.ContainerStart(ctx, name, container.StartOptions{})
@@ -39,11 +40,11 @@ func (dc *DockerClient) StartContainer(ctx context.Context, name string, log fun
 		return "", fmt.Errorf("failed to start container %s: %w", name, err)
 	}
 
-	log(fmt.Sprintf("Container %s started successfully", name))
+	log.Info("Container %s started successfully", name)
 	return name, nil
 }
 
-func (dc *DockerClient) StopContainer(ctx context.Context, name string, log func(string)) error {
+func (dc *DockerClient) StopContainer(ctx context.Context, name string, log *logger.Logger) error {
 	cli := dc.cli
 
 	err := cli.ContainerStop(ctx, name, container.StopOptions{})
@@ -51,11 +52,11 @@ func (dc *DockerClient) StopContainer(ctx context.Context, name string, log func
 		return fmt.Errorf("failed to stop container %s: %w", name, err)
 	}
 
-	log(fmt.Sprintf("Container %s stopped successfully", name))
+	log.Info("Container %s stopped successfully", name)
 	return nil
 }
 
-func (dc *DockerClient) RemoveContainer(ctx context.Context, name string, log func(string)) error {
+func (dc *DockerClient) RemoveContainer(ctx context.Context, name string, log *logger.Logger) error {
 	cli := dc.cli
 
 	err := cli.ContainerRemove(ctx, name, container.RemoveOptions{Force: true})
@@ -63,21 +64,34 @@ func (dc *DockerClient) RemoveContainer(ctx context.Context, name string, log fu
 		return fmt.Errorf("failed to remove container %s: %w", name, err)
 	}
 
-	log(fmt.Sprintf("Container %s removed successfully", name))
+	log.Info("Container %s removed successfully", name)
 	return nil
 }
 
-func (dc *DockerClient) CreateContainer(ctx context.Context, name string, image string, ports map[string]string, env map[string]string, volumes map[string]string, networkMode string, log func(string)) (string, error) {
+func (dc *DockerClient) PullImage(ctx context.Context, image string, log *logger.Logger) error {
 	cli := dc.cli
-
-	// pull image
 	reader, err := cli.ImagePull(ctx, image, dImage.PullOptions{})
 	if err != nil {
-		return "", fmt.Errorf("failed to pull image %s: %w", image, err)
+		// check if image exists locally
+		_, err := cli.ImageInspect(ctx, image)
+		if err == nil {
+			log.Info("Image %s exists locally", image)
+			return nil
+		}
+		return fmt.Errorf("failed to pull image %s: %w", image, err)
 	}
 	io.Copy(io.Discard, reader)
 	reader.Close()
-	log(fmt.Sprintf("Image %s pulled successfully", image))
+	log.Info("Image %s pulled successfully", image)
+	return nil
+}
+
+func (dc *DockerClient) CreateContainer(ctx context.Context, name string, image string, ports map[string]string, env map[string]string, volumes map[string]string, networkMode string, log *logger.Logger) (string, error) {
+	cli := dc.cli
+
+	if err := dc.PullImage(ctx, image, log); err != nil {
+		return "", fmt.Errorf("failed to pull image %s: %w", image, err)
+	}
 
 	// ports
 	exposed := nat.PortSet{}
@@ -103,7 +117,7 @@ func (dc *DockerClient) CreateContainer(ctx context.Context, name string, image 
 		sourceHost := hostPath
 		if !utils.IsAbsolutePath(hostPath) {
 			sourceContainer := fmt.Sprintf("%s/%s/%s", volumesPathContainer, name, hostPath)
-			log(fmt.Sprintf("Creating volume at: %s", sourceContainer))
+			log.Info("Creating volume at: %s", sourceContainer)
 			if err := os.MkdirAll(sourceContainer, 0755); err != nil {
 				return "", fmt.Errorf("failed to create volume directory %s: %w", sourceContainer, err)
 			}
@@ -114,7 +128,16 @@ func (dc *DockerClient) CreateContainer(ctx context.Context, name string, image 
 	}
 
 	config := &container.Config{Image: image, Env: envVars, ExposedPorts: exposed}
-	hostConfig := &container.HostConfig{PortBindings: bindings, Mounts: mounts}
+	hostConfig := &container.HostConfig{
+		PortBindings: bindings,
+		Mounts:       mounts,
+		RestartPolicy: container.RestartPolicy{
+			Name: "always",
+		},
+		Resources: container.Resources{
+			CgroupParent: "/docker.slice",
+		},
+	}
 	if networkMode != "" {
 		hostConfig.NetworkMode = container.NetworkMode(networkMode)
 	}
@@ -123,7 +146,7 @@ func (dc *DockerClient) CreateContainer(ctx context.Context, name string, image 
 	if err != nil {
 		return "", fmt.Errorf("failed to create container: %w", err)
 	}
-	log(fmt.Sprintf("Container %s created successfully", name))
+	log.Info("Container %s created successfully", name)
 
 	return resp.ID, nil
 }

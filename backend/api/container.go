@@ -30,5 +30,6 @@ func RegisterContainerRoutes(r *gin.RouterGroup, db *gorm.DB, dockerClient *dock
 		containerGroup.POST("/:containerId/stop", containerHandler.StopContainer)
 		containerGroup.GET("/:containerId/logs", containerHandler.GetContainerLogs)
 		containerGroup.POST("/import", containerHandler.ImportComposeFile)
+		containerGroup.POST("/build_from_source", containerHandler.BuildFromSource)
 	}
 }

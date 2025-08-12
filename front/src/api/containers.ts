@@ -21,6 +21,11 @@ export const importComposeFile = async (projectId: string, composeFile: string):
     return res.data;
 }
 
+export const buildFromSource = async (projectId: string, gitURL: string, accessToken?: string): Promise<{ message: string }> => {
+    const res = await http.post<{ message: string }>(`/projects/${projectId}/containers/build_from_source`, { git_url: gitURL, access_token: accessToken });
+    return res.data;
+}
+
 export const updateContainer = async (projectId: string, containerId: string, containerData: Partial<Container>): Promise<Container> => {
     const res = await http.put<Container>(`/projects/${projectId}/containers/${containerId}`, containerData);
     return res.data;
@@ -51,3 +56,4 @@ export const getContainerStatus = async (projectId: string, containerId: string)
     const res = await http.get(`/projects/${projectId}/containers/${containerId}/status`);
     return res.data.status as ContainerStatus;
 }
+

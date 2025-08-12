@@ -39,12 +39,5 @@ func (r *JobRepository) GetByID(id uint) (*model.Job, error) {
 }
 
 func (r *JobRepository) RemoveByID(id uint) error {
-	if err := r.DeleteAssociations(&model.Job{ID: id}); err != nil {
-		return err
-	}
 	return r.DB.Delete(&model.Job{}, id).Error
-}
-
-func (r *JobRepository) DeleteAssociations(job *model.Job) error {
-	return r.DB.Select("Logs").Delete(job).Error
 }

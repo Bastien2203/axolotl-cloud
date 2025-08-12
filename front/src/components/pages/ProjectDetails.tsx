@@ -3,22 +3,23 @@ import { type Container, type Project } from "../../api/types";
 import { useEffect, useState } from "react";
 import { useToast } from "../../contexts/ToastContext";
 import { getProject } from "../../api/projects";
-import { ArrowLeft, File, Plus } from "lucide-react";
-import { createContainer, deleteContainer, getContainers, getContainerStatus, importComposeFile, startContainer, stopContainer, updateContainer } from "../../api/containers";
+import { ArrowLeft, File, GitBranch, Plus } from "lucide-react";
+import { buildFromSource, createContainer, deleteContainer, getContainers, getContainerStatus, importComposeFile, startContainer, stopContainer, updateContainer } from "../../api/containers";
 import Button from "../atoms/Button";
 import CreateContainerModal from "../modals/CreateContainerModal";
 import ImportComposeFileModal from "../modals/ImportComposeFileModal";
 import ContainerCard from "../all/ContainerCard";
+import { useDialog } from "../../hooks/useDialog";
+import FormModal from "../modals/FormModal";
 
 
 const ProjectDetails = () => {
     const { projectId } = useParams<{ projectId: string }>();
     const [project, setProject] = useState<Project>();
     const [containers, setContainers] = useState<Container[]>([]);
-    const [createModalOpen, setCreateModalOpen] = useState(false);
-    const [importComposeFileModal, setImportComposeFileModal] = useState(false);
     const toast = useToast();
     const navigate = useNavigate();
+    const { dialog, openDialog, closeDialog } = useDialog<"build-from-source" | "create-project" | "import-compose-file">();
 
     useEffect(() => {
         if (projectId) {
@@ -57,6 +58,17 @@ const ProjectDetails = () => {
         });
     }
 
+    const handleBuildFromSource = (props: { git_url: string, access_token?: string }) => {
+        buildFromSource(projectId || "", props.git_url, props.access_token).then((response) => {
+            toast.success(response.message);
+        }).catch((error) => {
+            console.error("Failed to build from source:", error);
+            toast.error("Failed to build from source. Please try again.");
+        }).finally(() => {
+            closeDialog("build-from-source");
+        });
+    }
+
 
     if (!project || !projectId || !containers) {
         return <div className="w-full m-4">Loading...</div>;
@@ -65,28 +77,44 @@ const ProjectDetails = () => {
 
     return (
         <>
-            {createModalOpen && <CreateContainerModal onClose={() => setCreateModalOpen(false)} onCreate={(container) => {
-                createContainer(projectId, container).then((newContainer) => {
-                    setContainers((prev) => [...prev, newContainer]);
-                    toast.success("Container created successfully!");
-                }).catch((error) => {
-                    console.error("Failed to create container:", error);
-                    toast.error("Failed to create container. Please try again.");
-                }).finally(() => {
-                    setCreateModalOpen(false);
-                });
-            }} />}
+            {
+                dialog("create-project", <CreateContainerModal onClose={() => closeDialog("create-project")} onCreate={(container) => {
+                    createContainer(projectId, container).then((newContainer) => {
+                        setContainers((prev) => [...prev, newContainer]);
+                        toast.success("Container created successfully!");
+                    }).catch((error) => {
+                        console.error("Failed to create container:", error);
+                        toast.error("Failed to create container. Please try again.");
+                    }).finally(() => {
+                        closeDialog("create-project");
+                    });
+                }} />)
+            }
 
-            {importComposeFileModal && <ImportComposeFileModal onClose={() => setImportComposeFileModal(false)} onImport={(file) => {
+            {dialog("import-compose-file", <ImportComposeFileModal onClose={() => closeDialog("import-compose-file")} onImport={(file) => {
                 importComposeFile(projectId, file).then((newContainers) => {
-                    setImportComposeFileModal(false);
+                    closeDialog("import-compose-file");
                     setContainers((prev) => [...prev, ...newContainers]);
                     toast.success("Containers imported successfully!");
                 }).catch((error) => {
                     console.error("Failed to import containers:", error);
                     toast.error("Failed to import containers. Please try again.");
                 })
-            }} />}
+            }} />)}
+
+            {
+                dialog("build-from-source", (
+                    <FormModal
+                        name="Build From Source"
+                        onClose={() => closeDialog("build-from-source")}
+                        onSubmit={handleBuildFromSource}
+                        fields={[
+                            { name: "git_url", type: "text", placeholder: "Git Repository URL", required: true },
+                            { name: "access_token", type: "text", placeholder: "Access Token", required: false }
+                        ]}
+                    />
+                ))
+            }
 
             <div className="flex justify-between items-center w-full">
                 <div className="flex items-center gap-2">
@@ -95,10 +123,13 @@ const ProjectDetails = () => {
                     <img src={project.icon_url} alt={`${project.name} icon`} className="w-auto h-8 " />
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button onClick={() => setImportComposeFileModal(true)} variant="secondary">
+                    <Button onClick={() => openDialog("build-from-source")} variant="secondary">
+                        Build From Source <GitBranch />
+                    </Button>
+                    <Button onClick={() => openDialog("import-compose-file")} variant="secondary">
                         Import Compose File <File />
                     </Button>
-                    <Button onClick={() => setCreateModalOpen(true)}>
+                    <Button onClick={() => (openDialog("create-project"))} variant="primary">
                         Create Container <Plus />
                     </Button>
                 </div>

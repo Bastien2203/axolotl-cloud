@@ -47,7 +47,8 @@ func main() {
 		panic("Invalid job timeout value: " + jobTimeoutInSecond.Value)
 	}
 	logger.Info(fmt.Sprintf("Job timeout set to %d seconds", timeout))
-	ctx, _ := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
+	defer cancel()
 	jobWorker.Start(ctx)
 
 	r := gin.Default()

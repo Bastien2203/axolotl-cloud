@@ -15,6 +15,7 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB, dockerClient *docker.DockerClien
 		RegisterContainerRoutes(apiGroup, db, dockerClient, jobWorker)
 		RegisterJobsRoutes(apiGroup, db, jobWorker)
 		RegisterVolumeRoutes(apiGroup, db, dockerClient)
+		RegisterSettingRoutes(apiGroup, db)
 	}
 
 	RegisterFrontRoutes(r)

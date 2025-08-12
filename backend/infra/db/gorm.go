@@ -24,6 +24,7 @@ func InitDB() (*gorm.DB, error) {
 		&model.Container{},
 		&model.Job{},
 		&model.JobLog{},
+		&model.Setting{},
 	)
 
 	return db, err

@@ -60,3 +60,9 @@ export type Volume = {
   container_id: string
   project_id: string
 }
+
+export type Setting = {
+  id: number
+  key: string
+  value: string
+}

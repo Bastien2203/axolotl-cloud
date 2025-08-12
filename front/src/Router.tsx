@@ -5,6 +5,7 @@ import ProjectDetails from "./components/pages/ProjectDetails"
 import Jobs from "./components/pages/Jobs"
 import JobDetails from "./components/pages/JobDetails"
 import Volumes from "./components/pages/Volumes"
+import Settings from "./components/pages/Settings"
 
 
 const Router= () => {
@@ -32,6 +33,10 @@ const Router= () => {
                 {
                     path: "/volumes",
                     element: <Volumes />
+                },
+                {
+                    path: "/settings",
+                    element: <Settings />
                 }
             ]
         },  
